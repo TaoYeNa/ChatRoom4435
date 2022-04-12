@@ -1,0 +1,23 @@
+syntax = "proto3";
+package ChatRoom4435;
+option go_package = "github.com/bartmika/simple-server";
+
+// The greeting service definition.
+service Chat {
+  // Sends a greeting
+  rpc SendMessage (Message) returns (MessageReply) {}
+}
+
+// The request message containing the user's name.
+message Message {
+  string event = 1;
+  string name =2;
+  string content =3;
+}
+
+// The response message containing the greetings
+message MessageReply {
+  string event = 1;
+  string name =2;
+  string content =3;
+}
