@@ -2,30 +2,47 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>公開匿名聊天室</title>
-    <link rel="stylesheet" href="../css/style.css"/>
+    <title>Public anonymous chat room</title>
+    <link rel="stylesheet" href="../assets/css/style.css"/>
 </head>
 <body>
 <section class="msger">
     <header class="msger-header">
         <div class="msger-header-title">
-            <i class="fas fa-comment-alt"></i> 公開匿名聊天室
+            <i class="fas fa-comment-alt"></i> Public anonymous chat room
         </div>
         <div class="msger-header-options">
             <span><i class="fas fa-cog"></i></span>
         </div>
     </header>
-    <!--聊天 block-->
+
+    <!--chat block-->
     <div class="msger-chat">
 
     </div>
-    <!--聊天 block-->
+    <!--chat block-->
 
     <div class="msger-inputarea">
-        <input type="text" class="msger-input" id="msg" placeholder="說些什麼吧～">
-        <button type="button" id="send" class="msger-send-btn">發送訊息</button>
-    </div>
+        <input type="text" class="msger-input" contenteditable="true" id="msg" placeholder="say hi to every one!">
+
+        <!-- button for send message -->
+        <button type="button" id="send" class="msger-send-btn">Send</button>
+
+        <!-- parents body related, cant cover input -->
+        <div style="position: relative;">
+
+            <!--cover all body -->
+            <!-- set opactity 0，input transparency -->
+            <!-- accept jpg，gif, png, pneg -->
+            <input id="upload-input" style="position: absolute; opacity: 0;" type="file" accept="image/gif, image/jpg, image/png, image/jpeg" onchange="showImg(this)" multiple />
+            <!--<button type="button" id="upload" class="msger-send-btn"> + </button>-->
+
+            <img id="upload" src="../img/upload.jpeg" style="width: 40px; height: 40px; vertical-align: middle;" />
+
+        </div>
+        <div id="imgContainer" style="margin-top: 10px;"></div>
+        <script src="../assets/js/upload.js" ></script>
 </section>
-<script src="assets/js/main.js"></script>
+<script src="../assets/js/main.js" type = "module"></script>
 </body>
 </html>
