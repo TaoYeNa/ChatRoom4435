@@ -39,10 +39,8 @@ type node struct {
 	NodeName   string
 	NodeNumber int
 	NodeMap   map[string]int64
-	// input operation
-	OperationsFile string
 	TimeStamp      int64
-	operations     []string
+	Todos     []data
 	// Consul related variables
 	SDAddress string
 	SDKV      api.KV
@@ -73,7 +71,17 @@ type Message struct {
 	Content   string `json:"content,omitempty"`   
 	Event string `json:"event,omitempty"` 
 	Img64 string `json:"img_64,omitempty"` 
+}
 
+type data struct {
+	Name    string
+	Photo string
+	Content   string 
+	Event string
+	Img64 string 
+	TimeStamp int64
+	Number int
+	UserName string
 }
 
 //创建客户端管理者
@@ -101,16 +109,26 @@ func (n *node) SendMessage(ctx context.Context, in *chat.Message) (*chat.Message
 		break
 	case "message":
 		cnt = "received"
-		e = "msg process"
-		jsonMessage, _ := json.Marshal(&Message{Name: in.Cid, Content: in.Content, Photo: in.Photo, Event: in.Event, Img64: in.Img})
-		fmt.Println("get Sender: ",string(jsonMessage))
-		// TODO: process data
+		e = "msg received"
+		err := n.InsertOperation(in.Name, in.Timestamp, in.Content, in.Photo, in.Event, in.Img, in.Cid)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Println(n.Todos)
+		break
+	case "release":
+		fmt.Println(len(n.Todos))
+		jsonMessage, _ := json.Marshal(&Message{Name: in.Cid, Content: in.Content, Photo: in.Photo, Event: "message", Img64: in.Img})
+		n.Todos = n.Todos[1:]
+		// fmt.Println("get Sender: ",string(jsonMessage))
+		// TODO: process data= false
 		manager.broadcast <- jsonMessage
+		go n.checkAndRelease(in.Cid, in.Content, in.Photo, in.Event, in.Img, in.Name)
 		break
 	}
+
 	return &chat.MessageReply{Name: n.Name, Content: cnt, Event: e, Timestamp: n.TimeStamp}, nil
 }
-
 
 func (manager *ClientManager) start() {
 	for {
@@ -120,7 +138,7 @@ func (manager *ClientManager) start() {
 			//把客户端的连接设置为true
 			manager.clients[conn] = true
 			//把返回连接成功的消息json格式化
-			jsonMessage, _ := json.Marshal(&Message{Content: "/A new socket has connected."})
+			jsonMessage, _ := json.Marshal(&Message{Content: "new socket has connected."})
 			//调用客户端的send方法，发送消息
 			manager.send(jsonMessage, conn)
 			//如果连接断开了
@@ -129,7 +147,7 @@ func (manager *ClientManager) start() {
 			if _, ok := manager.clients[conn]; ok {
 				close(conn.send)
 				delete(manager.clients, conn)
-				jsonMessage, _ := json.Marshal(&Message{Content: "/A socket has disconnected."})
+				jsonMessage, _ := json.Marshal(&Message{Content: "socket has disconnected."})
 				manager.send(jsonMessage, conn)
 			}
 			//广播
@@ -181,11 +199,6 @@ func (c *Client) read() {
 		}
 		fmt.Println("get Data: ", data)
 		nd.GreetAll(c.id, data)
-		jsonMessage, _ := json.Marshal(&Message{Name: data["name"], Content: data["content"], Photo: data["photo"], Event: data["event"], Img64: data["img_64"]})
-		fmt.Println("get: ", string(jsonMessage))
-		// time.Sleep(1 * time.Second)
-		// // TODO: process data
-		manager.broadcast <- jsonMessage
 		fmt.Println("id:", data["name"], ", ct: ",data["content"])
 	}
 }
@@ -311,6 +324,33 @@ func (n *node) StartGreet() {
 	}
 }
 
+// read the input operation, if the list is empty, then write to the front,
+// else write to the front of the operation which has a larger timestamp,
+// if this operation does not exist then write to the back.
+func (n *node) InsertOperation(name string, timeStamp int64, content string, photo string, event string, img string, userName string) error {
+	node := strings.Split(name, " ")
+	number, err := strconv.Atoi(node[1])
+	if err != nil {
+		return err
+	}
+	if len(n.Todos) == 0 {
+		n.Todos = make([]data, 1)
+		n.Todos[0] = data{Name: name, TimeStamp: timeStamp, Content: content, Photo: photo, Event: event, Img64: img, Number: number, UserName: userName}
+	} else {
+		for index, todo := range n.Todos {
+			if todo.TimeStamp >= timeStamp && todo.Number > number {
+				n.Todos = append(n.Todos, data{})
+				copy(n.Todos[index+1:], n.Todos[index:])
+				n.Todos[index] = data{Name: name, TimeStamp: timeStamp, Content: content, Photo: photo, Event: event, Img64: img, Number: number, UserName: userName}
+				break
+			} else if index+1 == len(n.Todos) {
+				n.Todos = append(n.Todos, data{Name: name, TimeStamp: timeStamp, Content: content, Photo: photo, Event: event, Img64: img, Number: number, UserName: userName})
+			}
+		}
+	}
+	return nil
+}
+
 // Busy Work module, greet every new member you find
 func (n *node) GreetAll(cid string, data map[string]string) {
 
@@ -319,14 +359,64 @@ func (n *node) GreetAll(cid string, data map[string]string) {
 		log.Panicln(err)
 		return
 	}
-	timetmp := n.TimeStamp
+	timetmp := n.TimeStamp + 1
+	// fmt.Println("cid: ",cid,", user: ", data["name"])
+	if strings.Compare(data["event"],"release") != 0{
+		err = n.InsertOperation(n.Name, timetmp, data["content"], data["photo"], data["event"], data["img_64"], data["name"])
+		if err != nil {
+			log.Panicln(err)
+			return
+		}
+	}
 	for _, kventry := range kvpairs {
 		if strings.Compare(kventry.Key, n.Name) != 0 {
 			fmt.Println("send to: ", kventry.Key)
 			n.SetupClient(kventry.Key, string(kventry.Value), timetmp, data["content"], data["event"], cid, data["photo"], data["img_64"])
 		}
 	}
-	fmt.Println(n.NodeMap)
+	fmt.Println(n.Todos)
+	n.checkAndRelease(cid,data["content"], data["photo"], data["event"], data["img"], data["name"])
+	
+}
+
+func (n *node) checkAndRelease(cid string, content string, photo string, event string, img string, userName string){
+
+	kvpairs, _, err := n.SDKV.List(n.NodeName, nil)
+	if err != nil {
+		log.Panicln(err)
+		return
+	}
+	if len(n.Todos) > 0 {
+		var (
+			isFirst bool = false
+			isLarger bool = true
+		)
+		// if current node is the first element in the todo list
+		if strings.Compare(n.Todos[0].Name, n.Name) == 0 {
+			isFirst = true
+		}
+		for _, kventry := range kvpairs {
+			if n.NodeMap[kventry.Key] <= n.Todos[0].TimeStamp {
+				isLarger = false
+			}
+		}
+		if isFirst == true && isLarger == true {
+			data := make(map[string]string)
+			data["event"] = "release"
+			data["name"] = userName
+			data["content"] = content
+			data["photo"] = photo
+			data["img_64"] = img
+			jsonMessage, _ := json.Marshal(&Message{Name: n.Todos[0].UserName, Content: n.Todos[0].Content, Photo: n.Todos[0].Photo, Event: n.Todos[0].Event, Img64: n.Todos[0].Img64})
+			fmt.Println("get: ", string(jsonMessage))
+			// time.Sleep(1 * time.Second)
+			// // TODO: process data
+			manager.broadcast <- jsonMessage
+			n.Todos = n.Todos[1:]
+			time.Sleep(time.Second / 10)
+			n.GreetAll(cid, data)
+		}
+	}
 }
 
 

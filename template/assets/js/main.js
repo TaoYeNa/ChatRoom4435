@@ -6,16 +6,13 @@ const EVENT_MESSAGE = "message"
 const EVENT_OTHER = "other"
 
 const userPhotos = [
-    "https://www.flaticon.com/svg/static/icons/svg/3408/3408584.svg",
-    "https://www.flaticon.com/svg/static/icons/svg/3408/3408537.svg",
-    "https://www.flaticon.com/svg/static/icons/svg/3408/3408540.svg",
-    "https://www.flaticon.com/svg/static/icons/svg/3408/3408545.svg",
-    "https://www.flaticon.com/svg/static/icons/svg/3408/3408551.svg",
-    "https://www.flaticon.com/svg/static/icons/svg/3408/3408556.svg",
-    "https://www.flaticon.com/svg/static/icons/svg/3408/3408564.svg",
-    "https://www.flaticon.com/svg/static/icons/svg/3408/3408571.svg",
-    "https://www.flaticon.com/svg/static/icons/svg/3408/3408578.svg",
-    "https://www.flaticon.com/svg/static/icons/svg/3408/3408720.svg"
+    "../../img/p1.svg",
+    "../../img/p2.svg",
+    "../../img/p3.svg",
+    "../../img/p4.svg",
+    "../../img/p5.svg",
+    "../../img/p6.svg",
+    "../../img/p7.svg",
 ]
 var PERSON_IMG = userPhotos[getRandomNum(0, userPhotos.length)];
 var PERSON_NAME = "Guest" + Math.floor(Math.random() * 1000);
@@ -47,7 +44,7 @@ function buttonHandle(obj){
 		            msg = getMessage(m.name, m.photo, RIGHT, m.content ,m.img_64);
 		        }
 		        else{
-		            msg = getMessage(m.name, m.photo, RIGHT, m.content);
+		            msg = getMessage(m.name, m.photo, RIGHT, m.content, null);
 		        }
 
 		    } else {
@@ -56,7 +53,7 @@ function buttonHandle(obj){
 		            msg = getMessage(m.name, m.photo, LEFT, m.content ,m.img_64);
 		        }
 		        else{
-		            msg = getMessage(m.name, m.photo, LEFT, m.content);
+		            msg = getMessage(m.name, m.photo, LEFT, m.content, null);
 		        }
 		    }
 		    break;
@@ -77,31 +74,37 @@ function buttonHandle(obj){
 }
 //send by click Send
 send.onclick = function (e) {
-    handleMessageEvent()
+    handleMessageEvent($("#msg").val())
 }
+
 
 //send by press Enter
 text.onkeydown = function (e) {
-    if (e.keyCode === 13 && text.value !== "") {
-        handleMessageEvent()
+    if (e.keyCode === 13) {
+        handleMessageEvent($("#msg").val())
     }
 };
 
 
 //content to send
-function handleMessageEvent() {
+function handleMessageEvent(val) {
+$("#msg").val("")
+ if(val.trim() != ""){
     ws.send(JSON.stringify({
         "event": "message",
         "photo": PERSON_IMG,
         "name": PERSON_NAME,
-        "content": text.value,
+        "content": val,
         "img_64" : res,
     }));
-    text.value = "";
     var img = document.getElementById("image")
     img.remove()
     res ="";
     console.log(res)
+    }
+    else{
+    alert("cannot send empty text!");
+    }
 }
 
 function getEventMessage(msg) {
@@ -109,22 +112,27 @@ function getEventMessage(msg) {
     return msg
 }
 
-function getMessage(name, img, side, text) {
+function getMessage(name, img, side, text, img64) {
     const d = new Date()
     //   Simple solution for small apps
     var msg = `
     <div class="msg ${side}-msg">
-      <div class="msg-img" style="background-image: url(${img})"></div>
-
+    `
+    if(img != null){
+      msg +=`<div class="msg-img" style="background-image: url(${img})"></div>`
+      }
+	msg += `
       <div class="msg-bubble">
         <div class="msg-info">
           <div class="msg-info-name">${name}</div>
           <div class="msg-info-time">${d.getFullYear()}/${d.getMonth()}/${d.getDay()} ${d.getHours()}:${d.getMinutes()}</div>
         </div>
 
-        <div class="msg-text">${text}
-        <img src ={res} id="return_image"/>
-        </div>
+        <div class="msg-text">${text}`
+        if(img64 != null){
+        	msg += `<img src =${img64} id="return_image"/>`
+        }
+        msg +=`</div>
       </div>
     </div>
   `
