@@ -1,6 +1,7 @@
 syntax = "proto3";
 package ChatRoom4435;
-option go_package = "github.com/bartmika/simple-server";
+option go_package = "proto/ChatRoom4435.proto;ChatRoom4435_proto";
+
 
 // The greeting service definition.
 service Chat {
@@ -13,6 +14,10 @@ message Message {
   string event = 1;
   string name =2;
   string content =3;
+  int64 timestamp = 4;
+  string cid = 5;
+  string photo = 6;
+  string img = 7;
 }
 
 // The response message containing the greetings
@@ -20,4 +25,8 @@ message MessageReply {
   string event = 1;
   string name =2;
   string content =3;
+  int64 timestamp = 4;
+  string cid = 5;
+  string photo = 6;
+  string img = 7;
 }
