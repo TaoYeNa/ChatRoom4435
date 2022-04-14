@@ -1,6 +1,7 @@
 
 var port;
 function buttonHandle(obj){
-    port = obj.id
-    console.log(port);
+    var portSelect = document.getElementById("port-selection")
+    portSelect.style.visibility = "hidden";
+    document.getElementById("cover").style.visibility = "hidden";
 }

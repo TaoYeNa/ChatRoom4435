@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <title>Public anonymous chat room</title>
-    <link rel="stylesheet" href="../assets/css/style.css"/>
+    <link rel="stylesheet" href="../css/style.css"/>
 </head>
 <body>
+<div class="cover" id ="cover"></div>
 <section class="msger">
     <header class="msger-header">
         <div class="msger-header-title">
@@ -15,7 +16,26 @@
             <span><i class="fas fa-cog"></i></span>
         </div>
     </header>
-
+    <div class="port-selection" id ="port-selection">
+        <div>
+            <p> Select Port</p>
+            <br>
+            <button class= "port" id="50000" onclick="buttonHandle(this)">
+                port1
+            </button>
+            <br>
+            <br>
+            <button class= "port" id = "50010" onclick="buttonHandle(this)">
+                port2
+            </button>
+            <br>
+            <br>
+            <button class= "port" id = "50020" onclick="buttonHandle(this)">
+                port3
+            </button>
+            <script src="../js/portHandle.js"></script>
+        </div>
+    </div>
     <!--chat block-->
     <div class="msger-chat">
 
@@ -41,8 +61,11 @@
 
         </div>
         <div id="imgContainer" style="margin-top: 10px;"></div>
-        <script src="../assets/js/upload.js" ></script>
+        <script src="../js/upload.js" ></script>
 </section>
-<script src="../assets/js/main.js" type = "module"></script>
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script>
+<script src="../js/upload.js"></script>
+<script src="../js/main.js"></script>
+
 </body>
 </html>
