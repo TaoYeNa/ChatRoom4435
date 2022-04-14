@@ -14,7 +14,7 @@ const userPhotos = [
     "../../img/p6.svg",
     "../../img/p7.svg",
 ]
-var PERSON_IMG = userPhotos[getRandomNum(0, userPhotos.length)];
+var PERSON_IMG = userPhotos[getRandomNum(0, userPhotos.length - 1)];
 var PERSON_NAME = "Guest" + Math.floor(Math.random() * 1000);
 
 var port;

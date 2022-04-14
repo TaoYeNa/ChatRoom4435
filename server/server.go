@@ -117,8 +117,8 @@ func (n *node) SendMessage(ctx context.Context, in *chat.Message) (*chat.Message
 		fmt.Println(n.Todos)
 		break
 	case "release":
-		fmt.Println(len(n.Todos))
-		jsonMessage, _ := json.Marshal(&Message{Name: in.Cid, Content: in.Content, Photo: in.Photo, Event: "message", Img64: in.Img})
+		// fmt.Println(len(n.Todos))
+		jsonMessage, _ := json.Marshal(&Message{Name: in.Cid, Content: n.Todos[0].Content, Photo: n.Todos[0].Photo, Event: "message", Img64: n.Todos[0].Img64})
 		n.Todos = n.Todos[1:]
 		// fmt.Println("get Sender: ",string(jsonMessage))
 		// TODO: process data= false
@@ -375,7 +375,7 @@ func (n *node) GreetAll(cid string, data map[string]string) {
 		}
 	}
 	fmt.Println(n.Todos)
-	n.checkAndRelease(cid,data["content"], data["photo"], data["event"], data["img"], data["name"])
+	n.checkAndRelease(cid,data["content"], data["photo"], data["event"], data["img_64"], data["name"])
 	
 }
 
@@ -455,7 +455,7 @@ func main() {
 	nd.registerService()
 
 	//开一个goroutine执行开始程序
-	time.Sleep(1 * time.Second)
+	time.Sleep(5 * time.Second)
 	nd.StartGreet()
 	go manager.start()
 	fmt.Println("Starting application...")
