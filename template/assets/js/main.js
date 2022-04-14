@@ -48,9 +48,21 @@ ws.onmessage = function (e) {
     switch (m.event) {
         case EVENT_MESSAGE:
             if (m.name == PERSON_NAME) {
-                msg = getMessage(m.name, m.photo, RIGHT, m.content ,m.img_64);
+                if(m.img_64 != null){
+                    msg = getMessage(m.name, m.photo, RIGHT, m.content ,m.img_64);
+                }
+                else{
+                    msg = getMessage(m.name, m.photo, RIGHT, m.content);
+                }
+
             } else {
-                msg = getMessage(m.name, m.photo, LEFT, m.content,m.img_64);
+
+                if(m.img_64 != null){
+                    msg = getMessage(m.name, m.photo, LEFT, m.content ,m.img_64);
+                }
+                else{
+                    msg = getMessage(m.name, m.photo, LEFT, m.content);
+                }
             }
             break;
         case EVENT_OTHER:
@@ -80,6 +92,7 @@ function handleMessageEvent() {
     text.value = "";
     var img = document.getElementById("image")
     img.remove()
+    res ="";
     console.log(res)
 }
 
