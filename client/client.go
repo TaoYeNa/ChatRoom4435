@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	chat "github.com/bartmika/simple-grpc/proto"
 	"google.golang.org/grpc"
 	"log"
 	"os"

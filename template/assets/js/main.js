@@ -20,16 +20,61 @@ const userPhotos = [
 var PERSON_IMG = userPhotos[getRandomNum(0, userPhotos.length)];
 var PERSON_NAME = "Guest" + Math.floor(Math.random() * 1000);
 
-var url = "ws://" + window.location.host + "/ws?id=" + PERSON_NAME;
-var ws = new WebSocket(url);
+var port;
+var ws;
+
+
 var name = "Guest" + Math.floor(Math.random() * 1000);
 var chatroom = document.getElementsByClassName("msger-chat")
 var text = document.getElementById("msg");
 var image_up = document.getElementById("image");
 var send = document.getElementById("send")
 
-ws.send(port)
+function buttonHandle(obj){
+    port = obj.id
+    var url = "ws://localhost:" + port + "/ws?id=" + PERSON_NAME;
+    ws = new WebSocket(url);
+    
+	$(".cover").hide();
+	$(".port-selection").hide();
+	ws.onmessage = function (e) {
+	    var m = JSON.parse(e.data)
+	    var msg = ""
+	    switch (m.event) {
+		case EVENT_MESSAGE:
+		    if (m.name == PERSON_NAME) {
+		        if(m.img_64 != null){
+		            msg = getMessage(m.name, m.photo, RIGHT, m.content ,m.img_64);
+		        }
+		        else{
+		            msg = getMessage(m.name, m.photo, RIGHT, m.content);
+		        }
 
+		    } else {
+
+		        if(m.img_64 != null){
+		            msg = getMessage(m.name, m.photo, LEFT, m.content ,m.img_64);
+		        }
+		        else{
+		            msg = getMessage(m.name, m.photo, LEFT, m.content);
+		        }
+		    }
+		    break;
+		case EVENT_OTHER:
+		    if (m.name != PERSON_NAME) {
+		        msg = getEventMessage(m.name + " " + m.content+" " )
+		    } else {
+		        msg = getEventMessage("You have" + " " + m.content+" " )
+		    }
+		    break;
+	    }
+	    insertMsg(msg, chatroom[0]);
+	};
+
+	ws.onclose = function (e) {
+	    console.log(e)
+	}
+}
 //send by click Send
 send.onclick = function (e) {
     handleMessageEvent()
@@ -42,43 +87,6 @@ text.onkeydown = function (e) {
     }
 };
 
-ws.onmessage = function (e) {
-    var m = JSON.parse(e.data)
-    var msg = ""
-    switch (m.event) {
-        case EVENT_MESSAGE:
-            if (m.name == PERSON_NAME) {
-                if(m.img_64 != null){
-                    msg = getMessage(m.name, m.photo, RIGHT, m.content ,m.img_64);
-                }
-                else{
-                    msg = getMessage(m.name, m.photo, RIGHT, m.content);
-                }
-
-            } else {
-
-                if(m.img_64 != null){
-                    msg = getMessage(m.name, m.photo, LEFT, m.content ,m.img_64);
-                }
-                else{
-                    msg = getMessage(m.name, m.photo, LEFT, m.content);
-                }
-            }
-            break;
-        case EVENT_OTHER:
-            if (m.name != PERSON_NAME) {
-                msg = getEventMessage(m.name + " " + m.content+" " )
-            } else {
-                msg = getEventMessage("You have" + " " + m.content+" " )
-            }
-            break;
-    }
-    insertMsg(msg, chatroom[0]);
-};
-
-ws.onclose = function (e) {
-    console.log(e)
-}
 
 //content to send
 function handleMessageEvent() {
